@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Generator
 
 
-@dataclass
+@dataclass(frozen=True)
 class Stock:
     name: str
     shares_count: int
@@ -31,4 +31,18 @@ class StocksInfo:
 
 
 if __name__ == "__main__":
-    print(StocksInfo("Data/portfolio3.dat").portfolio_cost())
+    print(StocksInfo("Data/portfolio.dat").portfolio_cost())
+
+
+"""
+total_cost = 0.0
+
+with open('../../Data/portfolio.dat', 'r') as f:
+    for line in f:
+        fields = line.split()
+        nshares = int(fields[1])
+        price = float(fields[2])
+        total_cost = total_cost + nshares * price
+
+print(total_cost)
+"""
