@@ -1,10 +1,8 @@
-total_cost = 0.0
-
-with open('Data/portfolio.dat', 'r') as f:
-    for line in f:
-        fields = line.split()
-        nshares = int(fields[1])
-        price = float(fields[2])
-        total_cost = total_cost + nshares * price
-
-print(total_cost)
+import tracemalloc
+f = open('Data/ctabus.csv')
+tracemalloc.start()
+lines = f.readlines()
+len(lines)
+current, peak = tracemalloc.get_traced_memory()
+print(current)
+print(peak)
