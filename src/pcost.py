@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-
-
-PATH_TO_FILE = "Data/portfolio.dat"
+from typing import Any, Generator
 
 
 @dataclass
@@ -11,8 +9,26 @@ class Stock:
     price: float
 
 
-def read_file():
-    with open(PATH_TO_FILE) as f:
-        for line in f:
-            name, shares_count, price = line.split()
-            yield Stock(name, int(shares_count), float(price))
+class StocksInfo:
+    def __init__(self, path: str) -> None:
+        self._path = path
+
+    def get_stocks(self) -> Generator[Stock, Any, Any]:
+        with open(self._path) as f:
+            for line in f:
+                name, shares_count, price = line.split()
+                try:
+                    yield Stock(name, int(shares_count), float(price))
+                except ValueError as err:
+                    print(f"Couldn't parse: {repr(line)}\n" f"Reason: {err}")
+
+    def portfolio_cost(self) -> float:
+        total_cost = 0.0
+        for stock in self.get_stocks():
+            total_cost += stock.shares_count * stock.price
+
+        return total_cost
+
+
+if __name__ == "__main__":
+    print(StocksInfo("Data/portfolio3.dat").portfolio_cost())
