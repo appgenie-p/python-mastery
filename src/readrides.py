@@ -2,9 +2,53 @@ import csv
 from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple, Tuple
 
-records: list[Any] = []
 
 Raw = Tuple[str, str, str, int]
+
+
+class Row:
+    def __init__(self, *args: Raw) -> None:
+        self.route = args[0]
+        self.date = args[1]
+        self.daytype = args[2]
+        self.rides = args[3]
+
+
+class RowSlots:
+    __slots__ = ["route", "date", "daytype", "rides"]
+
+    def __init__(self, *args: Raw) -> None:
+        self.route = args[0]
+        self.date = args[1]
+        self.daytype = args[2]
+        self.rides = args[3]
+
+
+class RowNamedTuple(NamedTuple):
+    route: str
+    date: str
+    daytype: str
+    rides: int
+
+
+@dataclass(slots=True)
+class RowDataClass:
+    route: str
+    date: str
+    daytype: str
+    rides: int
+
+
+def save_as_class(*args: Raw):
+    return Row(*args)
+
+
+def save_as_class_slots(*args: Raw) -> RowSlots:
+    return RowSlots(*args)
+
+
+def save_as_dataclass(*args: *Raw) -> RowDataClass:
+    return RowDataClass(*args)
 
 
 def save_as_tuple(*args: Raw):
@@ -21,56 +65,11 @@ def save_as_dict(*args: Raw):
     return record
 
 
-class Row:
-    def __init__(self, *args: Raw) -> None:
-        self.route = args[0]
-        self.date = args[1]
-        self.daytype = args[2]
-        self.rides = args[3]
-
-
-def save_as_class(*args: Raw):
-    return Row(*args)
-
-
-class RowNamedTuple(NamedTuple):
-    route: str
-    date: str
-    daytype: str
-    rides: int
-
-
-def save_as_named_tuple(*args: Raw):
+def save_as_named_tuple(*args: *Raw):
     return RowNamedTuple(*args)
 
 
-class RowSlots:
-    __slots__ = ["route", "date", "daytype", "rides"]
-
-    def __init__(self, route: str, date: str, daytype: str, rides: int):
-        self.route = route
-        self.date = date
-        self.daytype = daytype
-        self.rides = rides
-
-
-def save_as_class_slots(*args: Raw):
-    return RowSlots(*args)
-
-
-@dataclass(slots=True)
-class RowDataClass:
-    route: str
-    date: str
-    daytype: str
-    rides: int
-
-
-def save_as_dataclass(*args: Raw):
-    return RowDataClass(*args)
-
-
-def read_rides(filename: str, save_method: Callable[..., Any]) -> list[Raw]:
+def read_rides(filename: str, save_method: Callable[..., Any]) -> list[Any]:
     records: list[Raw] = []
     with open(filename, "r") as f:
         rows = csv.reader(f)
@@ -97,8 +96,6 @@ if __name__ == "__main__":
         save_as_class_slots,
         save_as_dataclass,
     ]
-
-    current, peak = 0, 0
 
     for method in methods:
         read_rides("Data/ctabus.csv", method)
