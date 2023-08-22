@@ -1,4 +1,5 @@
 import csv
+from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple, Tuple
 
 records: list[Any] = []
@@ -20,43 +21,58 @@ def save_as_dict(*args: Raw):
     return record
 
 
-def save_as_class(*args: Raw):
-    class Row:
-        def __init__(self, *args: Raw) -> None:
-            self.route = args[0]
-            self.date = args[1]
-            self.daytype = args[2]
-            self.rides = args[3]
+class Row:
+    def __init__(self, *args: Raw) -> None:
+        self.route = args[0]
+        self.date = args[1]
+        self.daytype = args[2]
+        self.rides = args[3]
 
+
+def save_as_class(*args: Raw):
     return Row(*args)
+
+
+class RowNamedTuple(NamedTuple):
+    route: str
+    date: str
+    daytype: str
+    rides: int
 
 
 def save_as_named_tuple(*args: Raw):
-    class Row(NamedTuple):
-        route: str
-        date: str
-        daytype: str
-        rides: int
+    return RowNamedTuple(*args)
 
-    return Row(*args)
+
+class RowSlots:
+    __slots__ = ["route", "date", "daytype", "rides"]
+
+    def __init__(self, route: str, date: str, daytype: str, rides: int):
+        self.route = route
+        self.date = date
+        self.daytype = daytype
+        self.rides = rides
 
 
 def save_as_class_slots(*args: Raw):
-    class Row:
-        __slots__ = ["route", "date", "daytype", "rides"]
+    return RowSlots(*args)
 
-        def __init__(self, route: str, date: str, daytype: str, rides: int):
-            self.route = route
-            self.date = date
-            self.daytype = daytype
-            self.rides = rides
 
-    return Row(*args)
+@dataclass(slots=True)
+class RowDataClass:
+    route: str
+    date: str
+    daytype: str
+    rides: int
+
+
+def save_as_dataclass(*args: Raw):
+    return RowDataClass(*args)
 
 
 def read_rides(filename: str, save_method: Callable[..., Any]) -> list[Raw]:
     records: list[Raw] = []
-    with open(filename) as f:
+    with open(filename, "r") as f:
         rows = csv.reader(f)
         _ = next(rows)  # Skip headers
         for row in rows:
@@ -73,17 +89,21 @@ if __name__ == "__main__":
 
     tracemalloc.start()
 
-    results = [
-        read_rides("Data/ctabus.csv", save_as_dict),
-        read_rides("Data/ctabus.csv", save_as_tuple),
-        # read_rides("Data/ctabus.csv", save_as_named_tuple),
-        # read_rides("Data/ctabus.csv", save_as_class),
-        # read_rides("Data/ctabus.csv", save_as_class_slots),
+    methods = [
+        save_as_tuple,
+        save_as_dict,
+        save_as_class,
+        save_as_named_tuple,
+        save_as_class_slots,
+        save_as_dataclass,
     ]
 
     current, peak = 0, 0
 
-    for result in results:
+    for method in methods:
+        read_rides("Data/ctabus.csv", method)
         current, peak = tracemalloc.get_traced_memory()
-        print(current, peak)
+        print(
+            f"current: {current:,}, peak: {peak:,}, method: {method.__name__}"
+        )
         tracemalloc.clear_traces()
