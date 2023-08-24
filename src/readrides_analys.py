@@ -2,7 +2,7 @@ import collections
 import pprint
 from typing import Any
 
-from src.readrides import RowDataClass, read_rides, save_as_dataclass
+from readrides import RowDataClass, read_rides, save_as_dataclass
 
 Raw = RowDataClass
 
@@ -56,3 +56,4 @@ if __name__ == "__main__":
         f"Total rides for each route: {count_total_rides_for_each_route()}"
     )
     pprint.pprint(greatest_increase_in_ridership())
+

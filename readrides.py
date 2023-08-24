@@ -2,7 +2,6 @@ import csv
 from dataclasses import dataclass
 from typing import Any, Callable, NamedTuple, Tuple
 
-
 Raw = Tuple[str, str, str, int]
 
 
@@ -83,7 +82,11 @@ def read_rides(filename: str, save_method: Callable[..., Any]) -> list[Any]:
     return records
 
 
-if __name__ == "__main__":
+def read_rides_as_dicts(path: str) -> list[dict[str, Any]]:
+    return read_rides(path, save_as_dict)
+
+
+def main():
     import tracemalloc
 
     tracemalloc.start()
@@ -104,3 +107,7 @@ if __name__ == "__main__":
             f"current: {current:,}, peak: {peak:,}, method: {method.__name__}"
         )
         tracemalloc.clear_traces()
+
+
+if __name__ == "__main__":
+    main()
