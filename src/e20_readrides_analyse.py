@@ -2,7 +2,7 @@ import collections
 import pprint
 from typing import Any
 
-from readrides import RowDataClass, read_rides, save_as_dataclass
+from e20_readrides import RowDataClass, read_rides, save_as_dataclass
 
 Raw = RowDataClass
 
@@ -11,7 +11,7 @@ rides: list[Raw] = read_rides("Data/ctabus.csv", save_as_dataclass)
 
 def count_bus_routs() -> int:
     """Count the number of bus routes."""
-    return len(set(ride.route for ride in rides))
+    return len({ride.route for ride in rides})
 
 
 def count_people_on_date(route: str, date: str) -> int:
@@ -56,4 +56,3 @@ if __name__ == "__main__":
         f"Total rides for each route: {count_total_rides_for_each_route()}"
     )
     pprint.pprint(greatest_increase_in_ridership())
-

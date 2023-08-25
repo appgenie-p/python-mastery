@@ -2,15 +2,15 @@
 
 from collections import defaultdict, Counter
 import tracemalloc
-import readrides
+import e20_readrides
 
 tracemalloc.start()
 
-rows = readrides.read_rides_as_dicts('../../Data/ctabus.csv')
+rows = e20_readrides.read_rides_as_dicts('../../Data/ctabus.csv')
 
 # --------------------------------------------------
 # Question 1:  How many bus routes are in Chicago?
-# Solution: Use a set to get unique values. 
+# Solution: Use a set to get unique values.
 
 routes = set()
 for row in rows:
