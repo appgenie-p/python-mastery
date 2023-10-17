@@ -1,7 +1,7 @@
 import csv
 
 
-def read_rides_as_tuples(filename):
+def read_rides_as_tuples(filename: str):
     """
     Read the bus ride data as a list of tuples
     """

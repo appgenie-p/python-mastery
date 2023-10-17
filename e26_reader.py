@@ -27,8 +27,8 @@ def main():
     from sys import intern
 
     rows = read_csv_as_dicts("Data/ctabus.csv", [intern, intern, str, int])
-    routeids = {id(row["route"]) for row in rows}
-    print(len(routeids))
+    route_ids = {id(row["route"]) for row in rows}
+    print(len(route_ids))
     print(tracemalloc.get_traced_memory())
 
 

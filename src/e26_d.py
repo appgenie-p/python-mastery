@@ -1,10 +1,14 @@
 import csv
 from typing import Any, TypeAlias
 
+Path: TypeAlias = str
+DictFormat: TypeAlias = list[Any]
+
 
 class DataCollection:
-    def __init__(self, headings):
-        [setattr(self, heading, []) for heading in headings]
+    def __init__(self, headings: list[str]):
+        for heading in headings:
+            setattr(self, heading, [])
 
     def __len__(self) -> int:
         self.attribute_names = list(vars(self).keys())
@@ -19,17 +23,13 @@ class DataCollection:
         }
 
 
-Path: TypeAlias = str
-DictFormat: TypeAlias = list[Any]
-
-
 def read_csv_as_columns(file: Path, *, types: DictFormat) -> DataCollection:
     """
     Read the bus ride data as a list of columns
     """
     with open(file) as f:
         rows = csv.reader(f)
-        headings = next(rows)
+        headings: list[str] = next(rows)
         dc = DataCollection(headings)
         for row in rows:
             list_items = [type_(item) for type_, item in zip(types, row)]

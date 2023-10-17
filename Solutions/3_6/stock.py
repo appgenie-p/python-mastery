@@ -52,9 +52,9 @@ class Stock:
 
 # Sample
 if __name__ == '__main__':
-    import reader
+    import e26_reader
     from tableformat import create_formatter, print_table
 
-    portfolio = reader.read_csv_as_instances('../../Data/portfolio.csv', Stock)
+    portfolio = e26_reader.read_csv_as_instances('../../Data/portfolio.csv', Stock)
     formatter = create_formatter('text')
     print_table(portfolio,['name','shares','price'], formatter)
