@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from e20_readrides_analyse import greatest_increase_in_ridership
 
 
 @dataclass
