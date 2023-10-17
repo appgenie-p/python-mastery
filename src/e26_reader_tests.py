@@ -1,4 +1,4 @@
-from src.e26_reader import read_csv_as_columns, read_csv_as_dicts
+from e26_reader import read_csv_as_columns, read_csv_as_dicts
 
 
 def test_read_csv_as_columns():
