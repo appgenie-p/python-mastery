@@ -4,6 +4,11 @@
         "daytype",
         "daytypes",
         "numrides",
+        "polegeni",
         "readrides"
-    ]
+    ],
+    "python.testing.cwd": "${workspaceFolder}/src",
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    }
 }
