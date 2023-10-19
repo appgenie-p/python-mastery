@@ -32,11 +32,8 @@ def read_portfolio(path: str) -> Portfolio:
 
 
 def print_portfolio(portfolio: Portfolio) -> None:
-    format_headers = "{:>10} {:>10} {:>10s}"
-    line = ("-" * 10 + " ") * 2 + "-" * 10
-    headers = ("name", "shares", "price")
-    print(format_headers.format(*headers))
-    print(line)
+    print("{:>10} {:>10} {:>10s}".format("name", "shares", "price"))
+    print(("-" * 10 + " ") * 2 + "-" * 10)
     for s in portfolio:
         print("%10s %10d %10.2f" % (s.name.strip('"'), s.shares, s.price))
 

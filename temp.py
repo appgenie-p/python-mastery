@@ -1,25 +1,42 @@
-import bisect
-import sys
+class Stock:
+    def __init__(self, name, shares, price):
+        self.name = name
+        self.shares = shares
+        self.price = price
 
-HAYSTACK = [1, 4, 5, 6, 8, 12, 15, 20, 21, 23, 23, 26, 29, 30]
-NEEDLES = [0, 1, 2, 5, 8, 10, 22, 23, 29, 30, 31]
+    def cost(self):
+        return self.shares * self.price
 
-ROW_FMT = "{0:2d} @ {1:2d}    {2}{0:<2d}"
+    def sell(self, nshares):
+        self.shares -= nshares
 
 
-def demo(bisect_fn):
-    for needle in reversed(NEEDLES):
-        position = bisect_fn(HAYSTACK, needle)  # (1)
-        offset = position * "  |"  # (2)
-        print(ROW_FMT.format(needle, position, offset))  # (3)
+def read_portfolio(filename):
+    """
+    Read a CSV file of stock data into a list of Stocks
+    """
+    import csv
+
+    portfolio = []
+    with open(filename) as f:
+        rows = csv.reader(f)
+        headers = next(rows)
+        for row in rows:
+            record = Stock(row[0], int(row[1]), float(row[2]))
+            portfolio.append(record)
+    return portfolio
+
+
+def print_portfolio(portfolio):
+    """
+    Make a nicely formatted table showing stock data
+    """
+    print("%10s %10s %10s" % ("name", "shares", "price"))
+    print(("-" * 10 + " ") * 3)
+    for s in portfolio:
+        print("%10s %10d %10.2f" % (s.name, s.shares, s.price))
 
 
 if __name__ == "__main__":
-    if sys.argv[-1] == "left":  # (4)
-        bisect_fn = bisect.bisect_left
-    else:
-        bisect_fn = bisect.bisect
-
-    print("DEMO:", bisect_fn.__name__)  # (5)
-    print("haystack ->", " ".join(f"{n:2}" for n in HAYSTACK))
-    demo(bisect_fn)
+    portfolio = read_portfolio("../Data/portfolio.csv")
+    print_portfolio(portfolio)
