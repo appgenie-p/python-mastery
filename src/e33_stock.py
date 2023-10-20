@@ -12,6 +12,7 @@ from typing import (
 )
 
 import tools
+from src.e33_reader import T
 
 PATH = tools.get_path("Data/portfolio.csv")
 
@@ -42,3 +43,11 @@ from decimal import Decimal
 
 class DStock(Stock):
     types = (str, int, Decimal)
+
+
+def read_portfolio(path: str, cls: Type[T]) -> Generator[T, None, None]:
+    with open(path, "rt") as f:
+        reader = csv.reader(f)
+        _ = next(reader)
+        for row in reader:
+            yield cls.from_row(row)
