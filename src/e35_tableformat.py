@@ -1,46 +1,66 @@
-import csv
-from dataclasses import dataclass
-from typing import Generator, Sequence, TypeAlias
+from abc import ABC, abstractmethod
+from typing import Any, Sequence
 
-import tools
-
-PATH = tools.get_path("Data/portfolio.csv")
+from e34_stock import Stock
 
 
-@dataclass
-class Stock:
-    name: str
-    shares: int
-    price: float
+class TableFormatter(ABC):
+    @abstractmethod
+    def headings(self, headers: Any) -> Any:
+        raise NotImplementedError()
 
-    # @property
-    def cost(self):
-        return self.shares * self.price
-
-    def sell(self, shares: int):
-        self.shares -= shares
+    @abstractmethod
+    def row(self, rowdata: Any) -> Any:
+        raise NotImplementedError()
 
 
-Portfolio: TypeAlias = Generator[Stock, None, None]
+class TextTableFormatter(TableFormatter):
+    def headings(self, headers: Sequence[str]):
+        print(" ".join("%10s" % h for h in headers))
+        print(("-" * 10 + " ") * len(headers))
+
+    def row(self, rowdata: Sequence[Any]):
+        print(" ".join("%10s" % d for d in rowdata))
 
 
-def read_portfolio(path: str) -> Portfolio:
-    with open(path, "rt") as f:
-        reader = csv.reader(f)
-        _ = next(reader)
-        for row in reader:
-            name, shares, price = row
-            yield Stock(name, int(shares), float(price))
+class CSVTableFormatter(TableFormatter):
+    def headings(self, headers: Sequence[str]):
+        print(",".join(headers))
+
+    def row(self, rowdata: Sequence[Any]):
+        print(",".join(str(item) for item in rowdata))
 
 
-def print_table(portfolio: Portfolio, cols: Sequence[str]):
-    f = "{:>10}"
-    print(" ".join(f.format(attr) for attr in cols))
-    for member in portfolio:
-        s = " ".join(f"{getattr(member, attr):>10}" for attr in cols)
-        print(" ".join(f"{getattr(member, attr):>10}" for attr in cols))
+class HTMLTableFormatter(TableFormatter):
+    def headings(self, headers: Sequence[str]):
+        self._form_and_print("<th>{}</th>", headers)
+
+    def row(self, rowdata: Sequence[Any]):
+        self._form_and_print("<td>{}</td>", rowdata)
+
+    def _form_and_print(self, inner_tag: str, data: Sequence[Any]) -> None:
+        outer = "<tr> {} </tr>"
+        inner = inner_tag
+        inner_out = " ".join(inner.format(header) for header in data)
+        print(outer.format(inner_out))
 
 
-if __name__ == "__main__":
-    portfolio = read_portfolio(PATH)
-    print_table(portfolio, ["name", "shares", "price"])
+def print_table(
+    records: Sequence[Stock], fields: Sequence[str], formatter: TableFormatter
+):
+    formatter.headings(fields)
+    for r in records:
+        rowdata = [getattr(r, fieldname) for fieldname in fields]
+        formatter.row(rowdata)
+
+
+def create_formatter(format: str) -> TableFormatter:
+    match format:
+        case "text":
+            return TextTableFormatter()
+        case "csv":
+            return CSVTableFormatter()
+        case "html":
+            return HTMLTableFormatter()
+        case _:
+            raise ValueError(f"Unknown table format {format}")

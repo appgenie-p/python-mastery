@@ -6,10 +6,15 @@
         "daytypes",
         "numrides",
         "polegeni",
-        "readrides"
+        "readrides",
+        "rowdata",
+        "tableformat"
     ],
     "python.testing.cwd": "${workspaceFolder}/src",
     "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    "terminal.integrated.env.osx": {
         "PYTHONPATH": "${workspaceFolder}/src"
     }
 }
