@@ -34,7 +34,7 @@ T = TypeVar("T", bound="FromRowProtocol")
 
 class FromRowProtocol(Protocol):
     @classmethod
-    def from_row(cls: Type[T], row: list[str]) -> T:
+    def from_row(cls: Type[T], row: Sequence[str]) -> T:
         ...
 
 
