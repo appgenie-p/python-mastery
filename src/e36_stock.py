@@ -1,6 +1,6 @@
 import csv
 from decimal import Decimal
-from typing import Any, Generator, NamedTuple, Sequence, Type, TypeAlias
+from typing import Any, Generator, NamedTuple, Sequence, Type
 
 from e33_reader import T
 
@@ -56,11 +56,36 @@ class Stock:
         return cls(*(func(item) for func, item in zip(cls._types, row)))
 
     def __repr__(self) -> str:
-        return f"Stock({self.name}, {self.shares}, {self.price})"
+        return (
+            f"{type(self).__name__}({self.name!r}, {self.shares!r}, "
+            f"{self.price!r})"
+        )
+
+    def __eq__(self, other: Any):
+        return isinstance(other, Stock) and (
+            (self.name, self.shares, self.price)
+            == (other.name, other.shares, other.price)
+        )
 
 
 class DStock(Stock):
     _types = RowFormat(str, int, Decimal)
+
+
+import sys
+
+
+class redirect_stdout:
+    def __init__(self, out_file: Any):
+        self.out_file = out_file
+
+    def __enter__(self):
+        self.stdout = sys.stdout
+        sys.stdout = self.out_file
+        return self.out_file
+
+    def __exit__(self, ty: Any, val: Any, tb: Any) -> None:
+        sys.stdout = self.stdout
 
 
 def read_portfolio(path: str, cls: Type[T]) -> Generator[T, None, None]:

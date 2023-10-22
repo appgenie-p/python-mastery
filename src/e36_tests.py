@@ -2,7 +2,14 @@ from decimal import Decimal
 
 import pytest
 
+from e33_reader import read_csv_as_instances
 from e36_stock import DStock, Stock
+from tools import get_path
+
+
+@pytest.fixture
+def portfolio() -> list[Stock]:
+    return read_csv_as_instances(get_path("Data/portfolio.csv"), Stock)
 
 
 def test_from_row():
@@ -54,3 +61,22 @@ def test_types_read_from_types():
 
     with pytest.raises(TypeError):
         sut.price = 92.3
+
+
+def test_class_repr():
+    goog = Stock("GOOG", 100, 490.10)
+    assert repr(goog) == "Stock('GOOG', 100, 490.1)"
+
+
+from io import StringIO
+
+from e36_stock import redirect_stdout
+
+
+def test_redirect_stdout():
+    out_file = StringIO()
+
+    with redirect_stdout(out_file):
+        print("Hello, world!")
+
+    assert out_file.getvalue() == "Hello, world!\n"
