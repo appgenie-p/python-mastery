@@ -1,18 +1,9 @@
 import csv
 from dataclasses import dataclass
-from typing import (
-    Any,
-    ClassVar,
-    Generator,
-    Iterable,
-    Protocol,
-    Sequence,
-    Type,
-    TypeAlias,
-)
+from typing import Any, ClassVar, Generator, Iterable, Type, TypeAlias
 
 import tools
-from src.e33_reader import T
+from e33_reader import T
 
 PATH = tools.get_path("Data/portfolio.csv")
 

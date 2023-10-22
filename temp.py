@@ -1,42 +1,56 @@
-class Stock:
-    def __init__(self, name, shares, price):
-        self.name = name
-        self.shares = shares
-        self.price = price
+from __future__ import annotations
 
-    def cost(self):
-        return self.shares * self.price
+from dataclasses import dataclass
+from datetime import date
 
-    def sell(self, nshares):
-        self.shares -= nshares
+YEAR = 360
+HALF_YEAR = YEAR // 2
 
 
-def read_portfolio(filename):
-    """
-    Read a CSV file of stock data into a list of Stocks
-    """
-    import csv
+@dataclass
+class Order:
+    """Represents and order in an e-commerce system."""
 
-    portfolio = []
-    with open(filename) as f:
-        rows = csv.reader(f)
-        headers = next(rows)
-        for row in rows:
-            record = Stock(row[0], int(row[1]), float(row[2]))
-            portfolio.append(record)
-    return portfolio
+    customer: Customer
+
+    def get_discount(self) -> float:
+        """Returns the discount for the order."""
+        return self.customer.get_discount()
 
 
-def print_portfolio(portfolio):
-    """
-    Make a nicely formatted table showing stock data
-    """
-    print("%10s %10s %10s" % ("name", "shares", "price"))
-    print(("-" * 10 + " ") * 3)
-    for s in portfolio:
-        print("%10s %10d %10.2f" % (s.name, s.shares, s.price))
+@dataclass
+class Customer:
+    """Represents a client."""
+
+    since: date
+
+    @property
+    def lifetime_days(self) -> int:
+        """Returns how long the person has been a customer in days."""
+        return (date.today() - self.since).days
+
+    def get_discount(self) -> float:
+        """Returns the discount based on how long the person has been a client."""
+        if self.lifetime_days < HALF_YEAR:
+            return 0.0
+        elif HALF_YEAR <= self.lifetime_days < YEAR:
+            return 0.1
+        elif YEAR <= self.lifetime_days < YEAR * 2:
+            return 0.15
+        else:
+            return 0.2
+
+
+def main() -> None:
+
+    henry = Customer(since= date(2023, 1, 1))
+    order1 = Order(henry)
+    print(f"Henry got {order1.get_discount() * 100:.0f} % discount")
+
+    anthony = Customer(since=date(2018, 1, 1))
+    order2 = Order(anthony)
+    print(f"Anthony got {order2.get_discount() * 100:.0f} % discount")
 
 
 if __name__ == "__main__":
-    portfolio = read_portfolio("../Data/portfolio.csv")
-    print_portfolio(portfolio)
+    main()
