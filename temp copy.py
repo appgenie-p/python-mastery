@@ -1,63 +1,65 @@
-from __future__ import annotations
-
-from dataclasses import dataclass
-from datetime import date
-
-YEAR = 360
-HALF_YEAR = YEAR // 2
+from dataclasses import dataclass, field
+from datetime import datetime
+from time import sleep
 
 
 @dataclass
-class Order:
-    """Represents and order in an e-commerce system."""
+class PersistentStorage:
+    """Storage records in dictionary."""
 
-    discount: Discount
+    storage: dict[str, int] = field(default_factory=dict)
 
-    def get_discount(self):
-        return self.discount.get_lifetime_discount()
+    def save(self, key: str, value: int) -> None:
+        """Add a record to the storage."""
+        self.storage[key] = value
 
+    def load(self, key: str) -> int:
+        """Get and amout from the storage."""
+        return self.storage[key]
 
-@dataclass
-class Discount:
-    """Discount calculations."""
-
-    customer: Customer
-
-    def get_lifetime_discount(self) -> float:
-        """Returns the discount based on how long the person has been a client."""
-        if self.customer.lifetime_days < HALF_YEAR:
-            return 0.0
-        elif HALF_YEAR <= self.customer.lifetime_days < YEAR:
-            return 0.1
-        elif YEAR <= self.customer.lifetime_days < YEAR * 2:
-            return 0.15
-        else:
-            return 0.2
+    def show(self) -> None:
+        """Shows all stored records."""
+        print(self.storage)
 
 
 @dataclass
-class Customer:
-    """Represents a client."""
+class Payment:
+    """Payment in an store."""
 
-    since: date
+    amount: int
+    persistent_storage: PersistentStorage
 
-    @property
-    def lifetime_days(self) -> int:
-        """Returns how long the person has been a customer in days."""
-        return (date.today() - self.since).days
+    def pay(self) -> None:
+        """Process payment."""
+        # code to process payment
+        print("Payment processed.")
+
+
+@dataclass
+class PaymentHandler:
+    """Handle the entire payment process."""
+
+    persistent_storage: PersistentStorage
+
+    def handle_payment(self, payment: Payment) -> None:
+        """Apply payment and store it at the end."""
+        payment.pay()
+        self.persistent_storage.save(datetime.now().isoformat(), payment.amount)
 
 
 def main() -> None:
-    # Usage
-    henry = Customer(since=date(2023, 1, 1))
-    henry_discount = Discount(henry)
-    order1 = Order(henry_discount)
-    print(f"Henry got {order1.get_discount() * 100:.0f} % discount")
 
-    anthony = Customer(since=date(2018, 1, 1))
-    discount_old_customer = Discount(anthony)
-    order2 = Order(discount_old_customer)
-    print(f"Anthony got {order2.get_discount() * 100:.0f} % discount")
+    persistent_storage = PersistentStorage()
+    payment_handler = PaymentHandler(persistent_storage)
+
+    payment1 = Payment(100, persistent_storage)
+    payment2 = Payment(200, persistent_storage)
+
+    payment_handler.handle_payment(payment1)
+    sleep(1)  # just to get a different timestamp
+    payment_handler.handle_payment(payment2)
+
+    persistent_storage.show()
 
 
 if __name__ == "__main__":
