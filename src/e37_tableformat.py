@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Sequence
 
-from stock import Stock
+from e37_stock import Stock
 
 
 class TableFormatter(ABC):
