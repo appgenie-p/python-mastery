@@ -13,7 +13,6 @@ class Stock:
     shares: int
     price: float
 
-    # @property
     def cost(self):
         return self.shares * self.price
 
@@ -37,7 +36,6 @@ def print_table(portfolio: Portfolio, cols: Sequence[str]):
     f = "{:>10}"
     print(" ".join(f.format(attr) for attr in cols))
     for member in portfolio:
-        s = " ".join(f"{getattr(member, attr):>10}" for attr in cols)
         print(" ".join(f"{getattr(member, attr):>10}" for attr in cols))
 
 

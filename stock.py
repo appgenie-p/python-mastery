@@ -1,4 +1,5 @@
 import csv
+import sys
 from decimal import Decimal
 from typing import Any, Generator, NamedTuple, Sequence, Type
 
@@ -70,9 +71,6 @@ class Stock:
 
 class DStock(Stock):
     _types = RowFormat(str, int, Decimal)
-
-
-import sys
 
 
 class redirect_stdout:

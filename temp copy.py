@@ -56,7 +56,7 @@ def main() -> None:
     payment2 = Payment(200, persistent_storage)
 
     payment_handler.handle_payment(payment1)
-    sleep(1)  # just to get a different timestamp
+    sleep(1)
     payment_handler.handle_payment(payment2)
 
     persistent_storage.show()
