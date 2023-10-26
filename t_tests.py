@@ -1,17 +1,22 @@
-import reader
-from src.tools import get_path
-from stock import Stock
-from tableformat import print_table
+from validate import *
 
-portfolio = reader.read_csv_as_instances(get_path("Data/portfolio.csv"), Stock)
+# assert PositiveInteger.check(10) == 10
+# assert PositiveInteger.check('10')
+# # Traceback (most recent call last):
+# #   File "<stdin>", line 1, in <module>
+# #     raise TypeError(f'Expected {cls.expected_type}')
+# # TypeError: Expected <class 'int'>
+# assert PositiveInteger.check(-10)
+# # Traceback (most recent call last):
+# #   File "<stdin>", line 1, in <module>
+# #     raise ValueError('Expected >= 0')
+# # ValueError: Must be >= 0
 
 
-from tableformat import create_formatter
-
-formatter = create_formatter("csv", column_formats=['"%s"', "%d", "%0.2f"])
-
-print_table(portfolio, ["name", "shares", "price"], formatter)
-
-formatter = create_formatter("text", upper_headers=True)
-
-print_table(portfolio, ["name", "shares", "price"], formatter)
+NonEmptyString.check('hello') == 'hello'
+assert NonEmptyString.check('')
+# Traceback (most recent call last):
+#   File "<stdin>", line 1, in <module>
+#     raise ValueError('Must be non-empty')
+# ValueError: Must be non-empty
+# assert
