@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence, Type, TypeVar, reveal_type
 
-from stock import Stock
+T = TypeVar("T", bound="TableFormatter")
 
 
 class TableFormatter(ABC):
@@ -45,11 +45,24 @@ class HTMLTableFormatter(TableFormatter):
         print(outer.format(inner_out))
 
 
+class ColumnFormatMixin:
+    formats: Sequence[str] = []
+
+    def row(self, rowdata: Sequence[str]):
+        rowdata = [(fmt % d) for fmt, d in zip(self.formats, rowdata)]
+        super().row(rowdata)
+
+
+class UpperHeadersMixin:
+    def headings(self, headers):
+        super().headings([h.upper() for h in headers])
+
+
 def print_table(
-    records: Sequence[Stock], fields: Sequence[str], formatter: Any
-):
+    records: Sequence[object], fields: Sequence[str], formatter: Any
+) -> None:
     if not isinstance(formatter, TableFormatter):
-        raise TypeError('Expected a TableFormatter')
+        raise TypeError("Expected a TableFormatter")
 
     formatter.headings(fields)
     for r in records:
@@ -57,13 +70,36 @@ def print_table(
         formatter.row(rowdata)
 
 
-def create_formatter(format: str) -> TableFormatter:
+def create_formatter(
+    format: str,
+    *,
+    column_formats: Optional[Sequence[str]] = None,
+    upper_headers: bool = False,
+) -> TableFormatter:
+    formatter_cls: Type[TableFormatter]
     match format:
         case "text":
-            return TextTableFormatter()
+            formatter_cls = TextTableFormatter
         case "csv":
-            return CSVTableFormatter()
+            formatter_cls = CSVTableFormatter
         case "html":
-            return HTMLTableFormatter()
+            formatter_cls = HTMLTableFormatter
         case _:
             raise ValueError(f"Unknown table format {format}")
+
+    if column_formats:
+        cf = column_formats
+
+        class CFormatterClass(ColumnFormatMixin, formatter_cls):   # type: ignore
+            formats = cf
+
+        formatter_cls = CFormatterClass
+
+    if upper_headers:
+
+        class HFormatterClass(UpperHeadersMixin, formatter_cls):  # type: ignore
+            pass
+
+        formatter_cls = HFormatterClass
+
+    return formatter_cls()
