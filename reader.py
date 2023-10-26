@@ -40,8 +40,7 @@ class DictCSVParser(CSVParser):
 
     def make_record(self, headers: Row, row: Row) -> dict[str, Any]:
         return {
-            name: func(val)
-            for name, func, val in zip(headers, self.types, row)
+            name: func(val) for name, func, val in zip(headers, self.types, row)
         }
 
 
@@ -58,6 +57,6 @@ def read_csv_as_instances(filename: str, cls: Type[T]) -> list[T]:
     return formatter.parse(filename)
 
 
-def read_csv_as_dicts(file: Path, format: Types) -> list[dict[str, Any]]:
+def read_csv_as_dicts(filename: Path, format: Types) -> list[dict[str, Any]]:
     formatter = DictCSVParser(format)
-    return formatter.parse(file)
+    return formatter.parse(filename)

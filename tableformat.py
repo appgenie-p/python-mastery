@@ -46,8 +46,11 @@ class HTMLTableFormatter(TableFormatter):
 
 
 def print_table(
-    records: Sequence[Stock], fields: Sequence[str], formatter: TableFormatter
+    records: Sequence[Stock], fields: Sequence[str], formatter: Any
 ):
+    if not isinstance(formatter, TableFormatter):
+        raise TypeError('Expected a TableFormatter')
+
     formatter.headings(fields)
     for r in records:
         rowdata = [getattr(r, fieldname) for fieldname in fields]
