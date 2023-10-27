@@ -1,10 +1,19 @@
-from typing import Any, NamedTuple, Sequence, Sized, Type
+from typing import Any, Sized
 
 
 class Validator:
+    def __init__(self, name=None):
+        self.name = name
+
+    def __set_name__(self, cls, name):
+        self.name = name
+
     @classmethod
-    def check(cls, value: Any) -> Any:
+    def check(cls, value):
         return value
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = self.check(value)
 
 
 class Typed(Validator):
@@ -55,58 +64,3 @@ class PositiveFloat(Float, Positive):
 
 class NonEmptyString(String, NonEmpty):
     pass
-
-
-class RowFormat(NamedTuple):
-    name: Any
-    shares: Any
-    price: Any
-
-
-class Stock:
-    __slots__ = ("name", "_shares", "_price")
-    _types = RowFormat(name=str, shares=int, price=float)
-
-    def __init__(self, name: str, shares: int, price: Any) -> None:
-        self.name = name
-        self._shares = shares
-        self._price = price
-
-    @property
-    def price(self) -> float:
-        return self._price
-
-    @price.setter
-    def price(self, value: Any) -> None:
-        self._price = PositiveFloat.check(value=value)
-
-    @property
-    def shares(self) -> int:
-        return self._shares
-
-    @shares.setter
-    def shares(self, value: Any) -> None:
-        self._shares = PositiveInteger.check(value=value)
-
-    @property
-    def cost(self):
-        return self.shares * self.price
-
-    def sell(self, shares: int):
-        self.shares -= shares
-
-    @classmethod
-    def from_row(cls: Type["Stock"], row: Sequence[str]) -> "Stock":
-        return cls(*(func(item) for func, item in zip(cls._types, row)))
-
-    def __repr__(self) -> str:
-        return (
-            f"{type(self).__name__}({self.name!r}, {self.shares!r}, "
-            f"{self.price!r})"
-        )
-
-    def __eq__(self, other: Any):
-        return isinstance(other, Stock) and (
-            (self.name, self.shares, self.price)
-            == (other.name, other.shares, other.price)
-        )
