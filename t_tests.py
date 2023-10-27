@@ -1,8 +1,9 @@
-from stock import Stock
+import reader
+from src.tools import get_path
 
-s = Stock("GOOG", 100, 490.10)
-s.name
-s.shares
-s.shares = 75
-s.shares = "75"
-s.shares = -50
+PATH = get_path("Data/portfolio.csv")
+
+
+file = open(PATH)
+port = reader.csv_as_dicts(file, [str, int, float])
+port

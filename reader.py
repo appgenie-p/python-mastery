@@ -1,62 +1,76 @@
 import csv
-from typing import Any, Generic, Protocol, Sequence, Type, TypeAlias, TypeVar
-
-Path: TypeAlias = str
-Types: TypeAlias = Sequence[Type[Any]]
-
-from abc import ABC, abstractmethod
-
-Row: TypeAlias = Sequence[str]
-
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Protocol,
+    Sequence,
+    Type,
+    TypeAlias,
+    TypeVar,
+)
 
 T = TypeVar("T", bound="FromRowProtocol")
+
+RowOfStr: TypeAlias = Sequence[str]
 
 
 class FromRowProtocol(Protocol):
     @classmethod
-    def from_row(cls: Type[T], row: Sequence[str]) -> T:
+    def from_row(cls: Type[T], row: RowOfStr) -> T:
         ...
 
 
-class CSVParser(ABC):
-    def parse(self, filename: str) -> list[Any]:
-        records: list[Any] = []
-        with open(filename) as f:
-            rows = csv.reader(f)
-            headers = next(rows)
-            for row in rows:
-                record = self.make_record(headers, row)
-                records.append(record)
-        return records
-
-    @abstractmethod
-    def make_record(self, headers: Row, row: Row) -> Any:
-        pass
+Types: TypeAlias = Sequence[Callable]
 
 
-class DictCSVParser(CSVParser):
-    def __init__(self, types: Types) -> None:
-        self.types = types
+def read_csv_as_dicts(filename, types: Types) -> list[dict]:
+    """
+    Read CSV data into a list of dictionaries with optional type conversion
+    """
+    records = []
+    with open(filename) as file:
+        rows = csv.reader(file)
+        headers = next(rows)
+        for row in rows:
+            record = {
+                name: func(val) for name, func, val in zip(headers, types, row)
+            }
+            records.append(record)
+    return records
 
-    def make_record(self, headers: Row, row: Row) -> dict[str, Any]:
-        return {
-            name: func(val) for name, func, val in zip(headers, self.types, row)
+
+def read_csv_as_instances(filename, cls: Type[T]) -> list[T]:
+    """
+    Read CSV data into a list of instances
+    """
+    records = []
+    with open(filename) as file:
+        rows = csv.reader(file)
+        headers = next(rows)
+        for row in rows:
+            record = cls.from_row(row)
+            records.append(record)
+    return records
+
+
+def csv_as_dicts(lines: Iterable[str], types: Types) -> list[dict]:
+    records = []
+    lines_iterator = iter(lines)
+    headers = next(lines_iterator).strip().split(",")
+    for line in lines:
+        record = {
+            name: func(val) for name, func, val in zip(headers, types, line.strip().split(","))
         }
+        records.append(record)
+    return records
 
 
-class InstanceCSVParser(CSVParser, Generic[T]):
-    def __init__(self, cls: Type[T]):
-        self.cls = cls
-
-    def make_record(self, headers: Row, row: Row) -> T:
-        return self.cls.from_row(row)
-
-
-def read_csv_as_instances(filename: str, cls: Type[T]) -> list[T]:
-    formatter = InstanceCSVParser(cls)
-    return formatter.parse(filename)
-
-
-def read_csv_as_dicts(filename: Path, format: Types) -> list[dict[str, Any]]:
-    formatter = DictCSVParser(format)
-    return formatter.parse(filename)
+def csv_as_instances(lines: Iterable[RowOfStr], cls: Type[T]) -> list[T]:
+    records = []
+    lines_iterator = iter(lines)
+    headers = next(lines_iterator)
+    for line in lines:
+        record = cls.from_row(line)
+        records.append(record)
+    return records
