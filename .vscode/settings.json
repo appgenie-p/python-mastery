@@ -8,7 +8,8 @@
         "polegeni",
         "readrides",
         "rowdata",
-        "tableformat"
+        "tableformat",
+        "typedproperty"
     ],
     "python.testing.cwd": "${workspaceFolder}/src",
     "terminal.integrated.env.linux": {
