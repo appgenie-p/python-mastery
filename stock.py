@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any, Generator, NamedTuple, Sequence, Type
 
 from reader import T
+from validate import PositiveFloat, PositiveInteger, String
 
 
 class RowFormat(NamedTuple):
@@ -13,44 +14,22 @@ class RowFormat(NamedTuple):
 
 
 class Stock:
-    __slots__ = ("name", "_shares", "_price")
     _types = RowFormat(str, int, float)
+    name = String()
+    shares = PositiveInteger()
+    price = PositiveFloat()
 
     def __init__(self, name: str, shares: int, price: Any) -> None:
         self.name = name
-        self._shares = shares
-        self._price = price
+        self.shares = shares
+        self.price = price
 
     @property
-    def price(self) -> float:
-        return self._price
+    def cost(self) -> float:
+        return self.shares * self.price  # type: ignore
 
-    @price.setter
-    def price(self, value: Any) -> None:
-        if not isinstance(value, self._types.price):
-            raise TypeError("Expected float")
-        if value < 0:
-            raise ValueError("Must be >= 0")
-        self._price = value
-
-    @property
-    def shares(self) -> int:
-        return self._shares
-
-    @shares.setter
-    def shares(self, value: Any) -> None:
-        if not isinstance(value, self._types.shares):
-            raise TypeError("Expected int")
-        if value < 0:
-            raise ValueError("Must be >= 0")
-        self._shares = value
-
-    @property
-    def cost(self):
-        return self.shares * self.price
-
-    def sell(self, shares: int):
-        self.shares -= shares
+    def sell(self, shares: int) -> None:
+        self.shares -= shares  # type: ignore
 
     @classmethod
     def from_row(cls: Type["Stock"], row: Sequence[str]) -> "Stock":

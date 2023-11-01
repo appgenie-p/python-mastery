@@ -1,6 +1,6 @@
 import unittest
 
-import src.e51_stock_orig as stock
+import e61_stock as stock
 
 
 class TestStock(unittest.TestCase):
