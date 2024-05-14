@@ -7,7 +7,12 @@ class Structure(ABC):
 
     @classmethod
     def create_init(cls):
-        pass
+        fields = ", ".join(cls._fields)
+        init = f"def __init__(self, {fields}):"
+        for field in cls._fields:
+            init += f"\n    self.{field} = {field}"
+        exec(init, globals(), locals())
+        cls.__init__ = locals()["__init__"]
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name in self._fields or __name.startswith("_"):
