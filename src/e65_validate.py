@@ -76,3 +76,14 @@ class ValidatedFunction:
             self.return_annotation.check(result)
 
         return result
+
+    def __get__(self, instanse, owner_cls):
+        if instanse is None:
+            return self
+        else:
+            return self._wrap(instanse)
+
+    def _wrap(self, instance):
+        def wraped(*args, **kwargs):
+            return self(instance, *args, **kwargs)
+        return wraped
