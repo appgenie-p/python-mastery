@@ -1,3 +1,4 @@
+from functools import wraps
 from inspect import Signature, signature
 from typing import Any, Callable
 
@@ -95,6 +96,7 @@ def validated(func):
     annotations: dict = func.__annotations__
     return_annotation = annotations.pop("return", None)
 
+    @wraps(func)
     def wrapper(*args, **kwargs):
         bound = sig.bind(*args, **kwargs)
         errors = []
@@ -118,3 +120,46 @@ def validated(func):
         return result
 
     return wrapper
+
+
+def enforce(**kwargs):
+    annotations: dict = kwargs
+    return_annotation = annotations.pop("return_", None)
+
+    def decorator(func):
+        sig: Signature = signature(func)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            errors = []
+            for key, value in annotations.items():
+                try:
+                    value.check(bound.arguments[key])
+                except Exception as e:
+                    errors.append(f"    {key}: {e}")
+
+            if errors:
+                raise TypeError("Bad Arguments\n" + "\n".join(errors))
+
+            result = func(*args, **kwargs)
+
+            if return_annotation:
+                try:
+                    return_annotation.check(result)
+                except Exception as e:
+                    raise TypeError(f"Bad return value: {e}") from e
+
+            return result
+
+        return wrapper
+    return decorator
+
+
+if __name__ == "__main__":
+
+    @enforce(x=Integer, y=Integer, return_=Integer)
+    def add(x, y):
+        return x + y
+
+    r = add(2, 3)
