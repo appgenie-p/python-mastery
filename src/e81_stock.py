@@ -1,6 +1,6 @@
-# e76_stock.py
+# e81_stock.py
 
-from e76_structure import Structure
+from e81_structure import Structure
 
 
 class Stock(Structure):

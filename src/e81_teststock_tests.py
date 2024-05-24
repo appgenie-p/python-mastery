@@ -1,8 +1,8 @@
-# e76_teststock_tests.py
+# e81_teststock_tests.py
 
 import unittest
 
-import src.e81_stock as stock
+import e81_stock as stock
 
 
 class TestStock(unittest.TestCase):
