@@ -15,6 +15,13 @@ class Validator:
     def __set__(self, instance, value):
         instance.__dict__[self.name] = self.check(value)
 
+    # Collect all derived classes into a dict
+    validators = {}
+
+    @classmethod
+    def __init_subclass__(cls):
+        cls.validators[cls.__name__] = cls
+
 
 class Typed(Validator):
     expected_type = object
@@ -48,18 +55,6 @@ class NonEmpty(Validator):
         if len(value) == 0:
             raise ValueError("must be non-empty")
         return super().check(value)
-
-
-class Integer(Typed):
-    expected_type = int
-
-
-class Float(Typed):
-    expected_type = float
-
-
-class String(Typed):
-    expected_type = str
 
 
 class PositiveInteger(Integer, Positive):

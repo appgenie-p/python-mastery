@@ -12,7 +12,8 @@
         "readrides",
         "rowdata",
         "tableformat",
-        "typedproperty"
+        "typedproperty",
+        "валидаторами"
     ],
     "python.testing.cwd": "${workspaceFolder}/src",
     "terminal.integrated.env.linux": {

@@ -1,8 +1,9 @@
-# structure.py
+# e76_structure.py
 
 from collections import ChainMap
+from typing import Any
 
-from validate import Validator, validated
+from e76_validate import Validator, validated
 
 
 class StructureMeta(type):
@@ -20,17 +21,14 @@ class Structure(metaclass=StructureMeta):
     _fields = ()
     _types = ()
 
-    def __setattr__(self, name, value):
-        if name.startswith("_") or name in self._fields:
+    def __setattr__(self, name, value) -> None:
+        if name in self._fields or name.startswith("_"):
             super().__setattr__(name, value)
         else:
-            raise AttributeError("No attribute %s" % name)
+            raise AttributeError(f"No attribute {name}")
 
-    def __repr__(self):
-        return "%s(%s)" % (
-            type(self).__name__,
-            ", ".join(repr(getattr(self, name)) for name in self._fields),
-        )
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}{tuple(self.__dict__.values())}"
 
     @classmethod
     def from_row(cls, row):
@@ -58,28 +56,20 @@ class Structure(metaclass=StructureMeta):
 
 def validate_attributes(cls):
     """
-    Class decorator that scans a class definition for Validators
-    and builds a _fields variable that captures their definition order.
+    Examines the class body for instances of Validators and fills in
+    the `_fields` variable.
     """
     validators = []
+
     for name, val in vars(cls).items():
         if isinstance(val, Validator):
             validators.append(val)
-
-        # Apply validated decorator to any callable with annotations
         elif callable(val) and val.__annotations__:
             setattr(cls, name, validated(val))
 
-    # Collect all of the field names
     cls._fields = tuple([v.name for v in validators])
+    cls._types = tuple([v.expected_type for v in validators])
 
-    # Collect type conversions. The lambda x:x is an identity
-    # function that's used in case no expected_type is found.
-    cls._types = tuple(
-        [getattr(v, "expected_type", lambda x: x) for v in validators]
-    )
-
-    # Create the __init__ method
     if cls._fields:
         cls.create_init()
 
@@ -89,3 +79,4 @@ def validate_attributes(cls):
 def typed_structure(clsname, **validators):
     cls = type(clsname, (Structure,), validators)
     return cls
+
