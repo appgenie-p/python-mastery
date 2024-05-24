@@ -19,3 +19,5 @@ def square(x):
 
 nums = [1, 2, 3, 4]
 result = reduce(sum, map(square, nums))
+
+type()

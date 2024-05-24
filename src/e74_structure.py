@@ -1,7 +1,15 @@
+# e74_structure.py
+
 from abc import ABC
 from typing import Any
 
-from e74_validate import Validator, validated
+from e74_validate import (
+    PositiveFloat,
+    PositiveInteger,
+    String,
+    Validator,
+    validated,
+)
 
 
 class Structure(ABC):
@@ -47,6 +55,7 @@ def validate_attributes(cls):
             validators.append(val)
         elif callable(val) and val.__annotations__:
             setattr(cls, name, validated(val))
+
     cls._fields = tuple([v.name for v in validators])
     cls._types = tuple([v.expected_type for v in validators])
 
@@ -56,17 +65,16 @@ def validate_attributes(cls):
     return cls
 
 
-def get_dynamic_init_code(cls):
-    fields = ", ".join(cls._fields)
-    init_code = f"def __init__(self, {fields}):"
-    for field in cls._fields:
-        init_code += f"\n    self.{field} = {field}"
-    return init_code
+def typed_structure(clsname, **validators):
+    cls = type(clsname, (Structure,), validators)
+    return cls
 
 
 if __name__ == "__main__":
-    import e73_reader as reader
-    from e73_stock import Stock
+    Stock = typed_structure(
+        "Stock", name=String(), shares=PositiveInteger(), price=PositiveFloat()
+    )
 
-    s = Stock.from_row(["GOOG", "100", "490.1"])
-    port = reader.read_csv_as_instances("../Data/portfolio.csv", Stock)
+    s = Stock("GOOG", 100, 490.1)
+
+    assert s.name == "GOOG"

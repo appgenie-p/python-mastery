@@ -1,4 +1,4 @@
-from typing import Any, Sized
+# validate.py
 
 
 class Validator:
@@ -20,9 +20,33 @@ class Typed(Validator):
     expected_type = object
 
     @classmethod
-    def check(cls, value: Any):
+    def check(cls, value):
         if not isinstance(value, cls.expected_type):
-            raise TypeError(f"Expected {cls.expected_type}")
+            raise TypeError(f"expected {cls.expected_type}")
+        return super().check(value)
+
+
+_typed_classes = [("Integer", int), ("Float", float), ("String", str)]
+
+globals().update(
+    (name, type(name, (Typed,), {"expected_type": ty}))
+    for name, ty in _typed_classes
+)
+
+
+class Positive(Validator):
+    @classmethod
+    def check(cls, value):
+        if value < 0:
+            raise ValueError("must be >= 0")
+        return super().check(value)
+
+
+class NonEmpty(Validator):
+    @classmethod
+    def check(cls, value):
+        if len(value) == 0:
+            raise ValueError("must be non-empty")
         return super().check(value)
 
 
@@ -38,22 +62,6 @@ class String(Typed):
     expected_type = str
 
 
-class Positive(Validator):
-    @classmethod
-    def check(cls, value: int | float):
-        if value < 0:
-            raise ValueError("Expected >= 0")
-        return super().check(value)
-
-
-class NonEmpty(Validator):
-    @classmethod
-    def check(cls, value: Sized):
-        if len(value) == 0:
-            raise ValueError("Must be non-empty")
-        return super().check(value)
-
-
 class PositiveInteger(Integer, Positive):
     pass
 
@@ -64,3 +72,124 @@ class PositiveFloat(Float, Positive):
 
 class NonEmptyString(String, NonEmpty):
     pass
+
+
+from functools import wraps
+from inspect import signature
+
+
+def isvalidator(item):
+    return isinstance(item, type) and issubclass(item, Validator)
+
+
+def validated(func):
+    sig = signature(func)
+
+    # Gather the function annotations
+    annotations = {
+        name: val
+        for name, val in func.__annotations__.items()
+        if isvalidator(val)
+    }
+
+    # Get the return annotation (if any)
+    retcheck = annotations.pop("return", None)
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        bound = sig.bind(*args, **kwargs)
+        errors = []
+
+        # Enforce argument checks
+        for name, validator in annotations.items():
+            try:
+                validator.check(bound.arguments[name])
+            except Exception as e:
+                errors.append(f"  {name}: {e}")
+
+        if errors:
+            raise TypeError("Bad Arguments\n" + "\n".join(errors))
+
+        result = func(*args, **kwargs)
+
+        # Enforce return check (if any)
+        if retcheck:
+            try:
+                retcheck.check(result)
+            except Exception as e:
+                raise TypeError(f"Bad return: {e}") from None
+        return result
+
+    return wrapper
+
+
+def enforce(**annotations):
+    retcheck = annotations.pop("return_", None)
+
+    def decorate(func):
+        sig = signature(func)
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            bound = sig.bind(*args, **kwargs)
+            errors = []
+
+            # Enforce argument checks
+            for name, validator in annotations.items():
+                try:
+                    validator.check(bound.arguments[name])
+                except Exception as e:
+                    errors.append(f"    {name}: {e}")
+
+            if errors:
+                raise TypeError("Bad Arguments\n" + "\n".join(errors))
+
+            result = func(*args, **kwargs)
+
+            if retcheck:
+                try:
+                    retcheck.check(result)
+                except Exception as e:
+                    raise TypeError(f"Bad return: {e}") from None
+            return result
+
+        return wrapper
+
+    return decorate
+
+
+# Examples
+if __name__ == "__main__":
+
+    @validated
+    def add(x: Integer, y: Integer) -> Integer:
+        return x + y
+
+    @validated
+    def div(x: Integer, y: Integer) -> Integer:
+        return x / y
+
+    @enforce(x=Integer, y=Integer)
+    def sub(x, y):
+        return x - y
+
+    class Stock:
+        name = NonEmptyString()
+        shares = PositiveInteger()
+        price = PositiveFloat()
+
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
+
+        def __repr__(self):
+            return f"Stock({self.name!r}, {self.shares!r}, {self.price!r})"
+
+        @property
+        def cost(self):
+            return self.shares * self.price
+
+        @validated
+        def sell(self, nshares: PositiveInteger):
+            self.shares -= nshares
