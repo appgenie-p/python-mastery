@@ -1,5 +1,6 @@
 # e83_coticker.py
 
+from typing import Generator
 from e82_structure import Structure
 
 
@@ -42,7 +43,7 @@ def create_ticker(target):
 
 
 @consumer
-def negchange(target):
+def negchange(target) -> Generator[None, Ticker, None]:
     while True:
         record = yield
         if record.change < 0:
